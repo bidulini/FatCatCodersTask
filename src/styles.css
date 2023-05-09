@@ -1,0 +1,112 @@
+table {
+  border-collapse: collapse;
+  margin: 20px auto;
+}
+
+td {
+  width: 30px;
+  height: 30px;
+  text-align: center;
+  border: 1px solid black;
+}
+
+.start {
+  background-color: green;
+}
+
+.end {
+  background-color: red;
+}
+
+.blocked {
+  background-color: grey;
+}
+
+.path {
+  background-color: yellow;
+}
+
+body {
+  background-color: #f2e8c4;
+  font-family: Arial, sans-serif;
+}
+
+.App {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+h1 {
+  color: #f2839c;
+  margin-bottom: 2rem;
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+form label {
+  display: block;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  color: #547aa8;
+}
+
+form input[type="number"] {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #b5d2d3;
+}
+
+form button {
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: none;
+  background-color: #547aa8;
+  color: #f2e8c4;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+form button:hover {
+  background-color: #f2839c;
+}
+
+table {
+  margin: 0 auto;
+  border-collapse: collapse;
+}
+
+td {
+  width: 2.5rem;
+  height: 2.5rem;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #547aa8;
+}
+
+td.S {
+  background-color: #b5d2d3;
+}
+
+td.E {
+  background-color: #f2839c;
+}
+
+td.path {
+  background-color: #85e3ff;
+}
+
+td.blocked {
+  background-color: #547aa8;
+  color: #f2e8c4;
+}

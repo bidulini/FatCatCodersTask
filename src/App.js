@@ -1,0 +1,240 @@
+//kod je ok osim velikog broja blocking elemenata
+
+import React, { useState } from "react";
+import "./styles.css";
+
+function App() {
+  const [order, setOrder] = useState(0);
+  const [current, setCurrent] = useState([]);
+  const [start, setStart] = useState([]);
+  const [end, setEnd] = useState([]);
+  const [matrix, setMatrix] = useState([]);
+
+  const generateBlockingObjects = (n, startX, startY, endX, endY) => {
+    const blockingObjects = [];
+
+    for (let i = 0; i < n; i++) {
+      let xIndexBO = Math.floor(Math.random() * n);
+      let yIndexBO = Math.floor(Math.random() * n);
+      while (
+        (startX === xIndexBO && startY === yIndexBO) ||
+        (endX === xIndexBO && endY === yIndexBO) ||
+        blockingObjects.some((b) => b.i === xIndexBO && b.j === yIndexBO)
+      ) {
+        xIndexBO = Math.floor(Math.random() * n);
+        yIndexBO = Math.floor(Math.random() * n);
+      }
+      blockingObjects.push({ i: xIndexBO, j: yIndexBO });
+    }
+
+    return blockingObjects;
+  };
+
+  const generateMatrix = (n, startX, startY, endX, endY) => {
+    const blockingObjects = generateBlockingObjects(
+      n,
+      startX,
+      startY,
+      endX,
+      endY
+    );
+
+    const newMatrix = [];
+
+    for (let i = 0; i < n; i++) {
+      const row = [];
+
+      for (let j = 0; j < n; j++) {
+        if (i === startX && j === startY) {
+          row.push("S");
+        } else if (i === endX && j === endY) {
+          row.push("E");
+        } else if (blockingObjects.some((b) => b.i === i && b.j === j)) {
+          row.push(0);
+        } else {
+          row.push(1);
+        }
+      }
+
+      newMatrix.push(row);
+    }
+
+    setMatrix(newMatrix);
+    setOrder(n);
+    setStart([startX, startY]);
+    setCurrent([startX, startY]);
+    setEnd([endX, endY]);
+  };
+
+  const isPath = (matrix, startX, startY, endX, endY) => {
+    const queue = [[startX, startY]];
+    const visited = new Set();
+
+    while (queue.length > 0) {
+      const [x, y] = queue.shift();
+
+      if (x === endX && y === endY) {
+        return true;
+      }
+
+      const neighbors = getNeighbors(matrix, x, y);
+
+      for (let i = 0; i < neighbors.length; i++) {
+        const [nx, ny] = neighbors[i];
+
+        if (!visited.has(`${nx},${ny}`)) {
+          visited.add(`${nx},${ny}`);
+          queue.push([nx, ny]);
+        }
+      }
+    }
+
+    return false;
+  };
+
+  const getNeighbors = (matrix, x, y) => {
+    const neighbors = [];
+
+    if (x > 0 && matrix[x - 1][y] !== 0) {
+      neighbors.push([x - 1, y]);
+    }
+
+    if (x < matrix.length - 1 && matrix[x + 1][y] !== 0) {
+      neighbors.push([x + 1, y]);
+    }
+
+    if (y > 0 && matrix[x][y - 1] !== 0) {
+      neighbors.push([x, y - 1]);
+    }
+
+    if (y < matrix[0].length - 1 && matrix[x][y + 1] !== 0) {
+      neighbors.push([x, y + 1]);
+    }
+
+    return neighbors;
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    generateMatrix(
+      parseInt(event.target.order.value),
+      parseInt(event.target.startX.value),
+      parseInt(event.target.startY.value),
+      parseInt(event.target.endX.value),
+      parseInt(event.target.endY.value)
+    );
+  };
+
+  const renderTable = () => {
+    // const numBlockingObjects = matrix
+    //   .flat()
+    //   .filter((cell) => cell === 0).length;
+    const numBlockingObjects = order;
+    const isPathFound = isPath(matrix, current[0], current[1], end[0], end[1]);
+
+    return (
+      <div>
+        <p>Number of blocking objects: {numBlockingObjects}</p>
+        <p>
+          Start point: ({start[0]}, {start[1]})
+        </p>
+        <p>
+          End point: ({end[0]}, {end[1]})
+        </p>
+        <p>Path found: {isPathFound ? "Yes" : "No"}</p>
+        <table>
+          <tbody>
+            {matrix.map((row, i) => (
+              <tr key={i}>
+                {row.map((cell, j) => (
+                  <td
+                    key={`${i},${j}`}
+                    className={
+                      cell === 0
+                        ? "blocked"
+                        : isPathFound && isCoordinateInPath(i, j)
+                        ? "path"
+                        : ""
+                    }>
+                    {cell === "S" ? "S" : cell === "E" ? "E" : ""}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  };
+
+  const isCoordinateInPath = (x, y) => {
+    const path = findPath(matrix, start[0], start[1], end[0], end[1]);
+    return path.some(([pathX, pathY]) => pathX === x && pathY === y);
+  };
+
+  const findPath = (matrix, startX, startY, endX, endY) => {
+    const queue = [[startX, startY]];
+    const visited = new Set();
+    const parentMap = {};
+
+    while (queue.length > 0) {
+      const [x, y] = queue.shift();
+
+      if (x === endX && y === endY) {
+        return getPath(parentMap, startX, startY, endX, endY);
+      }
+
+      const neighbors = getNeighbors(matrix, x, y);
+
+      for (let i = 0; i < neighbors.length; i++) {
+        const [nx, ny] = neighbors[i];
+
+        if (!visited.has(`${nx},${ny}`)) {
+          visited.add(`${nx},${ny}`);
+          parentMap[`${nx},${ny}`] = [x, y];
+          queue.push([nx, ny]);
+        }
+      }
+    }
+
+    return null;
+  };
+
+  const getPath = (parentMap, startX, startY, endX, endY) => {
+    const path = [[endX, endY]];
+    let [x, y] = path[0];
+
+    while (x !== startX || y !== startY) {
+      [x, y] = parentMap[`${x},${y}`];
+      path.unshift([x, y]);
+    }
+
+    return path;
+  };
+
+  return (
+    <div className="App">
+      <h1>Pathfinding</h1>
+      <form onSubmit={handleSubmit}>
+        <label htmlFor="order">Order:</label>
+        <input type="number" id="order" name="order" required />
+
+        <label htmlFor="startX">Start X:</label>
+        <input type="number" id="startX" name="startX" required />
+
+        <label htmlFor="startY">Start Y:</label>
+        <input type="number" id="startY" name="startY" required />
+
+        <label htmlFor="endX">End X:</label>
+        <input type="number" id="endX" name="endX" required />
+
+        <label htmlFor="endY">End Y:</label>
+        <input type="number" id="endY" name="endY" required />
+
+        <button type="submit">Generate Matrix</button>
+      </form>
+      {renderTable()}
+    </div>
+  );
+}
+export default App;
